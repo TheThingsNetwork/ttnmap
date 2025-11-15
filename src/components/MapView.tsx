@@ -5,7 +5,10 @@ import type { FeatureCollection, Point } from 'geojson';
 import type { Gateway } from '../types/gateway';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+const MAP_STYLES = {
+  dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+  light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+} as const;
 const ttnTenants = new Set(['ttn', 'ttnv2']);
 
 export interface FocusPoint {
@@ -18,6 +21,7 @@ interface MapViewProps {
   focusPoint: FocusPoint | null;
   onFocusConsumed: () => void;
   onGatewaySelect?: (gateway: Gateway | null) => void;
+  theme: 'dark' | 'light';
 }
 
 const clusterColors: ExpressionSpecification = [
@@ -36,7 +40,7 @@ const clusterColors: ExpressionSpecification = [
 
 const markerPulse: ExpressionSpecification = ['case', ['==', ['get', 'category'], 'ttn'], '#47e7ff', '#ff9db9'] as ExpressionSpecification;
 
-const MapView = ({ gateways, focusPoint, onFocusConsumed, onGatewaySelect }: MapViewProps) => {
+const MapView = ({ gateways, focusPoint, onFocusConsumed, onGatewaySelect, theme }: MapViewProps) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
 
@@ -47,11 +51,11 @@ const MapView = ({ gateways, focusPoint, onFocusConsumed, onGatewaySelect }: Map
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: MAP_STYLE,
-      center: [0, 25],
+      style: MAP_STYLES[theme],
+      center: [-30, 15],
       zoom: 1.4,
-      pitch: 52,
-      bearing: -12,
+      pitch: 0,
+      bearing: 0,
       attributionControl: false,
       hash: false,
     });
@@ -86,6 +90,13 @@ const MapView = ({ gateways, focusPoint, onFocusConsumed, onGatewaySelect }: Map
         },
       })),
   }), [gateways]);
+
+  useEffect(() => {
+    if (mapRef.current) {
+      const style = MAP_STYLES[theme];
+      mapRef.current.setStyle(style);
+    }
+  }, [theme]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -170,16 +181,18 @@ const MapView = ({ gateways, focusPoint, onFocusConsumed, onGatewaySelect }: Map
       });
     };
 
+    const onStyleData = () => applyData();
+
     if (map.isStyleLoaded()) {
       applyData();
-    } else {
-      map.once('load', applyData);
     }
 
+    map.on('styledata', onStyleData);
+
     return () => {
-      map.off('load', applyData);
+      map.off('styledata', onStyleData);
     };
-  }, [featureCollection]);
+  }, [featureCollection, theme]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -267,7 +280,7 @@ const MapView = ({ gateways, focusPoint, onFocusConsumed, onGatewaySelect }: Map
       map.off('mouseenter', 'clusters', onClusterEnter);
       map.off('mouseleave', 'clusters', onClusterLeave);
     };
-  }, [featureCollection, gateways, onGatewaySelect]);
+  }, [featureCollection, gateways, onGatewaySelect, theme]);
 
   useEffect(() => {
     if (!focusPoint || !mapRef.current) {
@@ -283,7 +296,7 @@ const MapView = ({ gateways, focusPoint, onFocusConsumed, onGatewaySelect }: Map
     onFocusConsumed();
   }, [focusPoint, onFocusConsumed]);
 
-  return <div ref={mapContainerRef} className="h-screen w-screen" />;
+  return <div ref={mapContainerRef} className="h-full w-full" />;
 };
 
 export default MapView;

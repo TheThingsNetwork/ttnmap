@@ -1,5 +1,5 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react';
-import { FiLayers, FiRefreshCcw, FiShield, FiSidebar, FiWifi, FiX } from 'react-icons/fi';
+import { useEffect, useMemo, useState } from 'react';
+import { FiMoon, FiRefreshCcw, FiSun } from 'react-icons/fi';
 import MapView, { FocusPoint } from './components/MapView';
 import LocationSearch from './components/LocationSearch';
 import { useGateways } from './hooks/useGateways';
@@ -14,8 +14,14 @@ const App = () => {
   const [showTTN, setShowTTN] = useState(true);
   const [showPrivate, setShowPrivate] = useState(true);
   const [focusPoint, setFocusPoint] = useState<FocusPoint | null>(null);
-  const [dashboardOpen, setDashboardOpen] = useState(true);
   const [selectedGateway, setSelectedGateway] = useState<Gateway | null>(null);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') {
+      return 'dark';
+    }
+    const stored = window.localStorage.getItem('ttn-theme');
+    return stored === 'light' ? 'light' : 'dark';
+  });
 
   const onlineGateways = useMemo(
     () => gateways.filter((gateway) => gateway.online && gateway.location),
@@ -50,142 +56,95 @@ const App = () => {
     setSelectedGateway(gateway);
   };
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('ttn-theme', theme);
+    }
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((value) => (value === 'dark' ? 'light' : 'dark'));
+  const isDark = theme === 'dark';
+
   const lastUpdatedLabel = lastUpdated
     ? lastUpdated.toLocaleString(undefined, { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })
     : '—';
 
-  const heroSubtitle = loading
-    ? 'Fetching live gateway data from Packet Broker…'
-    : `${formatNumber(visibleGateways.length)} gateways are visible with the current filters.`;
-
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
-      <MapView
-        gateways={toggleAllOff ? [] : (visibleGateways as Gateway[])}
-        focusPoint={focusPoint}
-        onFocusConsumed={() => setFocusPoint(null)}
-        onGatewaySelect={handleGatewaySelect}
-      />
-      {dashboardOpen && (
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center px-6 pt-6">
-          <div className="flex w-full max-w-6xl flex-col gap-4">
-            <div className="pointer-events-auto glass-panel rounded-3xl p-6 text-white">
-              <div className="flex flex-wrap items-start justify-between gap-6">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-slate-400">The Things Network</p>
-                  <h1 className="font-display text-4xl font-semibold text-white">Gateway Atlas</h1>
-                  <p className="mt-2 max-w-2xl text-sm text-slate-300">{heroSubtitle}</p>
-                </div>
-                <div className="flex w-full flex-col items-end gap-3 sm:w-auto">
-                  <button
-                    className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-3 py-1.5 text-xs uppercase tracking-[0.3em] text-slate-200 transition hover:border-white/30"
-                    onClick={() => setDashboardOpen(false)}
-                  >
-                    Close <FiX />
-                  </button>
-                  <LocationSearch onSelect={handleSearchSelect} />
-                </div>
-              </div>
-              <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard
-                  label="Online gateways"
-                  value={formatNumber(onlineGateways.length)}
-                  icon={<FiWifi />}
-                />
-                <StatCard
-                  label="Things Stack"
-                  value={formatNumber(ttnCount)}
-                  sublabel="The Things Network + TTNv2"
-                  icon={<FiLayers />}
-                  active={showTTN}
-                  onToggle={() => setShowTTN((value) => !value)}
-                />
-                <StatCard
-                  label="Private networks"
-                  value={formatNumber(privateCount)}
-                  sublabel="Other Packet Broker participants"
-                  icon={<FiShield />}
-                  active={showPrivate}
-                  onToggle={() => setShowPrivate((value) => !value)}
-                />
-                <StatCard
-                  label="Last updated"
-                  value={lastUpdatedLabel}
-                  sublabel="Packet Broker telemetry"
-                  icon={<FiRefreshCcw />}
-                />
-              </div>
-            </div>
-          <div className="pointer-events-auto">
-            <div className="glass-panel rounded-3xl p-6">
-              <h2 className="font-display text-lg text-white">Gateway details</h2>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Click a gateway on the map to inspect it</p>
-              {selectedGateway ? (
-                <GatewayDetails gateway={selectedGateway} />
-              ) : (
-                <p className="mt-4 text-sm text-slate-400">
-                  {loading ? 'Loading live data…' : 'Select any gateway pinpoint to see its IDs, hardware placement, and coordinates.'}
-                </p>
-              )}
-            </div>
-          </div>
+    <div className={`relative h-screen w-screen overflow-hidden ${isDark ? 'bg-[#050914] text-white' : 'bg-[#f5f6fb] text-slate-900'}`}>
+      <div
+        className={`pointer-events-auto absolute left-6 top-6 z-20 flex max-w-md flex-col gap-3 rounded-3xl border p-5 ${
+          isDark ? 'border-white/10 bg-[#050914]/85 text-white' : 'border-slate-200 bg-white/95 text-slate-900 shadow-xl'
+        }`}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+            {loading ? 'Fetching live gateway data from Packet Broker…' : 'Explore live Packet Broker gateways around the world.'}
+          </p>
+          <button
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs uppercase tracking-[0.3em] transition ${
+              isDark ? 'border-white/20 text-slate-200 hover:border-white/40' : 'border-slate-300 text-slate-600 hover:border-slate-500'
+            }`}
+            onClick={toggleTheme}
+          >
+            {isDark ? (
+              <>
+                <FiSun /> Light
+              </>
+            ) : (
+              <>
+                <FiMoon /> Dark
+              </>
+            )}
+          </button>
         </div>
-        </div>
-      )}
-      {!dashboardOpen && (
-        <button
-          className="pointer-events-auto absolute top-6 right-6 z-10 inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-[#050914]/80 px-4 py-2 text-sm text-white shadow-lg transition hover:border-white"
-          onClick={() => setDashboardOpen(true)}
-        >
-          <FiSidebar /> Open dashboard
-        </button>
-      )}
-      <div className="pointer-events-auto absolute bottom-6 left-6 flex flex-wrap items-center gap-4 rounded-full bg-[#050914]/70 px-4 py-2 text-xs text-slate-400">
-        <LegendSwatch color="#47e7ff" label="The Things Stack" />
-        <LegendSwatch color="#ff9db9" label="Private network" />
-        {error && <span className="text-red-300">{error}</span>}
+        <LocationSearch onSelect={handleSearchSelect} theme={theme} />
       </div>
+      <div className="absolute inset-0">
+        <MapView
+          gateways={toggleAllOff ? [] : (visibleGateways as Gateway[])}
+          focusPoint={focusPoint}
+          onFocusConsumed={() => setFocusPoint(null)}
+          onGatewaySelect={handleGatewaySelect}
+          theme={theme}
+        />
+        <div
+          className={`pointer-events-auto absolute bottom-6 left-6 flex max-w-4xl flex-nowrap items-center gap-3 overflow-x-auto rounded-full border px-4 py-3 text-xs ${
+            isDark ? 'border-white/10 bg-[#050914]/85 text-slate-300' : 'border-slate-200 bg-white/95 text-slate-600 shadow-lg'
+          }`}
+        >
+          <LegendSummary
+            color="#47e7ff"
+            label="The Things Stack"
+            count={formatNumber(ttnCount)}
+            description="TTN + TTNv2"
+            isDark={isDark}
+          />
+          <LegendSummary
+            color="#ff9db9"
+            label="Private network"
+            count={formatNumber(privateCount)}
+            description="Other Packet Broker participants"
+            isDark={isDark}
+          />
+          <InfoPill label="Online gateways" value={formatNumber(onlineGateways.length)} isDark={isDark} />
+          {error && (
+            <span className={`rounded-full px-3 py-1 ${isDark ? 'bg-red-500/20 text-red-200' : 'bg-red-100 text-red-500'}`}>
+              {error}
+            </span>
+          )}
+        </div>
+      </div>
+      {loading && <LoadingOverlay isDark={isDark} />}
+      {selectedGateway && (
+        <GatewayModal gateway={selectedGateway} onClose={() => setSelectedGateway(null)} theme={theme} />
+      )}
     </div>
   );
 };
 
-interface StatCardProps {
-  label: string;
-  value: string;
-  sublabel?: string;
-  icon: ReactNode;
-  active?: boolean;
-  onToggle?: () => void;
-}
-
-const StatCard = ({ label, value, sublabel, icon, active = true, onToggle }: StatCardProps) => {
-  const isInteractive = Boolean(onToggle);
-  const className = [
-    'flex flex-col gap-2 rounded-2xl border border-white/5 bg-white/5 px-4 py-3 shadow-inner shadow-white/5',
-    isInteractive ? 'cursor-pointer transition hover:border-white/20' : '',
-    isInteractive && !active ? 'opacity-40' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  const handleClick = () => {
-    if (!isInteractive) return;
-    onToggle?.();
-  };
-
-  return (
-    <button className={className} onClick={handleClick} type={isInteractive ? 'button' : undefined}>
-      <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-400">
-        <span>{icon}</span>
-        {label}
-      </div>
-      <div className="font-display text-3xl text-white">{value}</div>
-      {sublabel && <div className="text-sm text-slate-400">{sublabel}</div>}
-    </button>
-  );
-};
-
-const GatewayDetails = ({ gateway }: { gateway: Gateway }) => {
+const GatewayDetails = ({ gateway, theme }: { gateway: Gateway; theme: 'dark' | 'light' }) => {
+  const isDark = theme === 'dark';
   const coordinateText = gateway.location
     ? `${gateway.location.latitude.toFixed(4)}, ${gateway.location.longitude.toFixed(4)}`
     : 'Location not provided';
@@ -211,9 +170,9 @@ const GatewayDetails = ({ gateway }: { gateway: Gateway }) => {
   ];
 
   return (
-    <div className="mt-5 space-y-5 text-sm text-slate-200">
-      <SectionGrid title="Identity" items={detailItems} />
-      <SectionGrid title="Location" items={locationItems} />
+    <div className="mt-5 space-y-5 text-sm">
+      <SectionGrid title="Identity" items={detailItems} theme={theme} />
+      <SectionGrid title="Location" items={locationItems} theme={theme} />
       <SectionGrid
         title="Status"
         items={[
@@ -221,30 +180,98 @@ const GatewayDetails = ({ gateway }: { gateway: Gateway }) => {
           { label: 'Last updated', value: new Date(gateway.updatedAt).toLocaleString() },
           { label: 'Antenna placement', value: antenna },
         ]}
+        theme={theme}
       />
     </div>
   );
 };
 
-const SectionGrid = ({ title, items }: { title: string; items: { label: string; value: string }[] }) => (
-  <div>
-    <p className="text-xs uppercase tracking-[0.4em] text-slate-500">{title}</p>
-    <div className="mt-3 grid gap-3 md:grid-cols-3">
-      {items.map((item) => (
-        <div key={item.label} className="rounded-2xl bg-white/5 px-5 py-4">
-          <p className="text-[0.65rem] uppercase tracking-[0.3em] text-slate-500">{item.label}</p>
-          <p className="mt-2 text-base text-white">{item.value}</p>
-        </div>
-      ))}
+const SectionGrid = ({ title, items, theme }: { title: string; items: { label: string; value: string }[]; theme: 'dark' | 'light' }) => {
+  const isDark = theme === 'dark';
+  return (
+    <div>
+      <p className={`text-xs uppercase tracking-[0.4em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{title}</p>
+      <div className="mt-3 grid gap-3 md:grid-cols-3">
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className={`rounded-2xl px-5 py-4 ${isDark ? 'bg-white/5 text-white' : 'bg-slate-100 text-slate-900'}`}
+          >
+            <p className={`text-[0.65rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+              {item.label}
+            </p>
+            <p className="mt-2 break-words text-base">{item.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const LegendSummary = ({
+  color,
+  label,
+  count,
+  description,
+  isDark,
+}: {
+  color: string;
+  label: string;
+  count: string;
+  description: string;
+  isDark: boolean;
+}) => (
+  <div className={`flex flex-shrink-0 items-center gap-3 rounded-full px-3 py-2 ${isDark ? 'bg-white/5 text-white' : 'bg-slate-200/80 text-slate-900'}`}>
+    <div className="flex items-center gap-2">
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+      <span className="text-sm font-medium">{label}</span>
+    </div>
+    <div>
+      <p className="font-display text-sm">{count}</p>
+      <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{description}</p>
     </div>
   </div>
 );
 
-const LegendSwatch = ({ color, label }: { color: string; label: string }) => (
-  <span className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-[0.7rem]">
-    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-    {label}
-  </span>
+const InfoPill = ({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => (
+  <div className={`flex-shrink-0 rounded-full px-3 py-2 ${isDark ? 'bg-white/5 text-white' : 'bg-slate-200/80 text-slate-900'}`}>
+    <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</p>
+    <p className="text-sm font-medium">{value}</p>
+  </div>
+);
+
+const LoadingOverlay = ({ isDark }: { isDark: boolean }) => (
+  <div
+    className={`pointer-events-auto absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 text-center ${
+      isDark ? 'bg-[#050914]/90 text-white' : 'bg-white/80 text-slate-900'
+    }`}
+  >
+    <FiRefreshCcw className={`text-3xl animate-spin ${isDark ? 'text-white' : 'text-slate-700'}`} />
+    <p className="font-display text-xl">Fetching live gateway data…</p>
+    <p className={`max-w-sm text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+      Hang tight while we synchronize with Packet Broker.
+    </p>
+  </div>
+);
+
+const GatewayModal = ({ gateway, onClose, theme }: { gateway: Gateway; onClose: () => void; theme: 'dark' | 'light' }) => (
+  <div className={`pointer-events-auto fixed inset-0 z-40 flex items-center justify-center p-6 ${theme === 'dark' ? 'bg-black/70' : 'bg-black/20'}`}>
+    <div className={`glass-panel relative w-full max-w-3xl rounded-3xl p-8 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+      <button
+        className={`absolute right-6 top-6 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs uppercase tracking-[0.3em] transition ${
+          theme === 'dark' ? 'border-white/20 text-slate-200 hover:border-white/40' : 'border-slate-300 text-slate-600 hover:border-slate-500'
+        }`}
+        onClick={onClose}
+      >
+        Close
+      </button>
+      <h2 className="font-display text-2xl">Gateway details</h2>
+      <p className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'} text-sm`}>
+        Full telemetry as reported by Packet Broker
+      </p>
+      <GatewayDetails gateway={gateway} theme={theme} />
+    </div>
+  </div>
 );
 
 export default App;
