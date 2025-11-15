@@ -21,7 +21,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   background: radial-gradient(circle at top, rgba(43, 130, 255, 0.25), transparent 45%),
     radial-gradient(circle at 20% 20%, rgba(255, 121, 198, 0.2), transparent 40%),
     #020512;

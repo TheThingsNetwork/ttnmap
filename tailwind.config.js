@@ -12,8 +12,8 @@ export default {
         ttnPurple: '#7b61ff',
       },
       fontFamily: {
-        display: ['"League Spartan"', '"Lato"', 'system-ui', 'sans-serif'],
-        body: ['"Lato"', 'system-ui', 'sans-serif'],
+        display: ['"League Spartan"', '"Inter"', 'system-ui', 'sans-serif'],
+        body: ['"Inter"', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         glass: '0 20px 60px rgba(8, 15, 40, 0.4)',
