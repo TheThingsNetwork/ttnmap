@@ -109,8 +109,8 @@ const App = () => {
           theme={theme}
         />
         <div
-          className={`pointer-events-auto absolute bottom-6 left-6 flex max-w-4xl flex-nowrap items-stretch gap-2 overflow-x-auto rounded-full border px-3 py-2 text-xs ${
-            isDark ? 'border-white/10 bg-[#050914]/80 text-slate-300' : 'border-slate-200 bg-white/95 text-slate-600 shadow-lg'
+          className={`pointer-events-auto absolute bottom-6 left-6 flex max-w-4xl flex-nowrap items-stretch overflow-hidden rounded-full border text-xs ${
+            isDark ? 'border-white/10 bg-[#050914]/80 text-slate-300' : 'border-slate-200 bg-white text-slate-600 shadow-lg'
           }`}
         >
           <LegendSummary
@@ -128,11 +128,6 @@ const App = () => {
             isDark={isDark}
           />
           <InfoPill label="Online gateways" value={formatNumber(onlineGateways.length)} isDark={isDark} />
-          {error && (
-            <span className={`rounded-full px-3 py-1 ${isDark ? 'bg-red-500/20 text-red-200' : 'bg-red-100 text-red-500'}`}>
-              {error}
-            </span>
-          )}
         </div>
       </div>
       {loading && <LoadingOverlay isDark={isDark} />}
@@ -208,6 +203,10 @@ const SectionGrid = ({ title, items, theme }: { title: string; items: { label: s
   );
 };
 
+const SegmentWrapper = ({ children, isDark }: { children: React.ReactNode; isDark: boolean }) => (
+  <div className={`flex flex-1 items-center gap-3 px-4 py-3 ${isDark ? 'border-white/10' : 'border-slate-200'} border-r last:border-r-0`}>{children}</div>
+);
+
 const LegendSummary = ({
   color,
   label,
@@ -220,35 +219,25 @@ const LegendSummary = ({
   count: string;
   description: string;
   isDark: boolean;
-}) => {
-  const chipClass = isDark
-    ? 'bg-white/5 text-white border border-white/10'
-    : 'bg-white text-slate-900 border border-slate-200/70';
-  return (
-    <div className={`flex h-full flex-shrink-0 items-center gap-3 rounded-full px-3 py-2 ${chipClass}`}>
-      <div className="flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-        <span className="text-sm font-medium">{label}</span>
-      </div>
-      <div>
-        <p className="font-display text-sm">{count}</p>
-        <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{description}</p>
-      </div>
+}) => (
+  <SegmentWrapper isDark={isDark}>
+    <div className="flex items-center gap-2">
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+      <span className="text-sm font-medium">{label}</span>
     </div>
-  );
-};
+    <div>
+      <p className="font-display text-sm">{count}</p>
+      <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{description}</p>
+    </div>
+  </SegmentWrapper>
+);
 
-const InfoPill = ({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => {
-  const chipClass = isDark
-    ? 'bg-white/5 text-white border border-white/10'
-    : 'bg-white text-slate-900 border border-slate-200/70';
-  return (
-    <div className={`flex h-full flex-shrink-0 items-center rounded-full px-3 py-2 ${chipClass}`}>
-      <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</p>
-      <p className="text-sm font-medium">{value}</p>
-    </div>
-  );
-};
+const InfoPill = ({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => (
+  <SegmentWrapper isDark={isDark}>
+    <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</p>
+    <p className="text-sm font-medium">{value}</p>
+  </SegmentWrapper>
+);
 
 const LoadingOverlay = ({ isDark }: { isDark: boolean }) => (
   <div
