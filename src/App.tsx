@@ -220,25 +220,35 @@ const LegendSummary = ({
   count: string;
   description: string;
   isDark: boolean;
-}) => (
-  <div className={`flex flex-shrink-0 items-center gap-3 rounded-full px-3 py-2 ${isDark ? 'bg-white/5 text-white' : 'bg-slate-200/80 text-slate-900'}`}>
-    <div className="flex items-center gap-2">
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-      <span className="text-sm font-medium">{label}</span>
+}) => {
+  const chipClass = isDark
+    ? 'bg-white/5 text-white border border-white/10'
+    : 'bg-transparent text-slate-900 border border-slate-200/70';
+  return (
+    <div className={`flex flex-shrink-0 items-center gap-3 rounded-full px-3 py-2 ${chipClass}`}>
+      <div className="flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+        <span className="text-sm font-medium">{label}</span>
+      </div>
+      <div>
+        <p className="font-display text-sm">{count}</p>
+        <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{description}</p>
+      </div>
     </div>
-    <div>
-      <p className="font-display text-sm">{count}</p>
-      <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{description}</p>
-    </div>
-  </div>
-);
+  );
+};
 
-const InfoPill = ({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => (
-  <div className={`flex-shrink-0 rounded-full px-3 py-2 ${isDark ? 'bg-white/5 text-white' : 'bg-slate-200/80 text-slate-900'}`}>
-    <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</p>
-    <p className="text-sm font-medium">{value}</p>
-  </div>
-);
+const InfoPill = ({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => {
+  const chipClass = isDark
+    ? 'bg-white/5 text-white border border-white/10'
+    : 'bg-transparent text-slate-900 border border-slate-200/70';
+  return (
+    <div className={`flex-shrink-0 rounded-full px-3 py-2 ${chipClass}`}>
+      <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</p>
+      <p className="text-sm font-medium">{value}</p>
+    </div>
+  );
+};
 
 const LoadingOverlay = ({ isDark }: { isDark: boolean }) => (
   <div
