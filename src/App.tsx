@@ -109,8 +109,8 @@ const App = () => {
           theme={theme}
         />
         <div
-          className={`pointer-events-auto absolute bottom-6 left-6 flex max-w-4xl flex-nowrap items-center gap-3 overflow-x-auto rounded-full border px-4 py-3 text-xs ${
-            isDark ? 'border-white/10 bg-[#050914]/85 text-slate-300' : 'border-slate-200 bg-white/95 text-slate-600 shadow-lg'
+          className={`pointer-events-auto absolute bottom-6 left-6 flex max-w-4xl flex-nowrap items-stretch gap-2 overflow-x-auto rounded-full border px-3 py-2 text-xs ${
+            isDark ? 'border-white/10 bg-[#050914]/80 text-slate-300' : 'border-slate-200 bg-white/95 text-slate-600 shadow-lg'
           }`}
         >
           <LegendSummary
@@ -223,9 +223,9 @@ const LegendSummary = ({
 }) => {
   const chipClass = isDark
     ? 'bg-white/5 text-white border border-white/10'
-    : 'bg-transparent text-slate-900 border border-slate-200/70';
+    : 'bg-white text-slate-900 border border-slate-200/70';
   return (
-    <div className={`flex flex-shrink-0 items-center gap-3 rounded-full px-3 py-2 ${chipClass}`}>
+    <div className={`flex h-full flex-shrink-0 items-center gap-3 rounded-full px-3 py-2 ${chipClass}`}>
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
         <span className="text-sm font-medium">{label}</span>
@@ -241,9 +241,9 @@ const LegendSummary = ({
 const InfoPill = ({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => {
   const chipClass = isDark
     ? 'bg-white/5 text-white border border-white/10'
-    : 'bg-transparent text-slate-900 border border-slate-200/70';
+    : 'bg-white text-slate-900 border border-slate-200/70';
   return (
-    <div className={`flex-shrink-0 rounded-full px-3 py-2 ${chipClass}`}>
+    <div className={`flex h-full flex-shrink-0 items-center rounded-full px-3 py-2 ${chipClass}`}>
       <p className={`text-[0.6rem] uppercase tracking-[0.3em] ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</p>
       <p className="text-sm font-medium">{value}</p>
     </div>
